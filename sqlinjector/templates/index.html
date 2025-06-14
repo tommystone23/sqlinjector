@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SQLInjector</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 p-6">
+
+  <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg">
+    <div class="border-b border-gray-200">
+      <h1 class="text-2xl font-bold p-4">SQLInjector</h1>
+      <div class="flex border-b">
+        <button class="tab-btn px-4 py-2 font-medium text-sm border-b-2 border-blue-500 text-blue-600" onclick="showTab('injectionTab')">Injection</button>
+        <button class="tab-btn px-4 py-2 font-medium text-sm text-gray-600 hover:text-blue-600" onclick="showTab('resultsTab')">Results</button>
+      </div>
+    </div>
+
+    <div id="injectionTab" class="tab-content p-4">
+      <form id="injectForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Target URL</label>
+          <input type="text" id="target" name="target" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Parameter</label>
+          <input type="text" id="param" name="param" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Payload</label>
+          <input type="text" id="payload" name="payload" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
+        </div>
+        <button type="button" onclick="startInjection()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Inject</button>
+      </form>
+    </div>
+
+    <div id="resultsTab" class="tab-content p-4 hidden">
+      <div class="flex items-center space-x-2 mb-2">
+        <h2 class="text-xl font-semibold">Injection Results</h2>
+        <div id="loadingSpinner" class="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin hidden"></div>
+      </div>
+      <pre id="resultOutput" class="bg-gray-100 p-3 rounded border text-sm whitespace-pre-wrap">No results yet.</pre>
+    </div>
+  </div>
+
+  <script>
+    const tabs = {
+      injectionTab: document.getElementById("injectionTab"),
+      resultsTab: document.getElementById("resultsTab"),
+    };
+
+    function showTab(tabId) {
+      for (const tab of Object.values(tabs)) {
+        tab.classList.add("hidden");
+      }
+      tabs[tabId].classList.remove("hidden");
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove("text-blue-600", "border-blue-500");
+        btn.classList.add("text-gray-600");
+      });
+
+      const activeBtn = [...document.querySelectorAll('.tab-btn')].find(btn => btn.textContent.trim().toLowerCase() === tabId.replace('Tab', '').toLowerCase());
+      if (activeBtn) {
+        activeBtn.classList.remove("text-gray-600");
+        activeBtn.classList.add("text-blue-600", "border-blue-500");
+      }
+    }
+
+    function startInjection() {
+      const target = document.getElementById('target').value;
+      const param = document.getElementById('param').value;
+      const payload = document.getElementById('payload').value;
+
+      showTab("resultsTab");
+
+      const output = document.getElementById("resultOutput");
+      const spinner = document.getElementById("loadingSpinner");
+      output.textContent = "";
+      spinner.classList.remove("hidden");
+
+      // Start SSE stream
+      if (window.sseSource) {
+        window.sseSource.close(); // Close previous one if any
+      }
+
+      // Customize URL to include query params or setup a new SSE stream endpoint
+      const query = new URLSearchParams({ target, param, payload }).toString();
+      window.sseSource = new EventSource(`/start-scan?${query}`);
+
+      window.sseSource.onmessage = function(event) {
+        output.textContent += event.data + "\n";
+      };
+
+      window.sseSource.onerror = function() {
+        spinner.classList.add("hidden");
+        window.sseSource.close();
+        output.textContent += "\n[SSE connection closed]";
+      };
+    }
+  </script>
+
+</body>
+</html>
