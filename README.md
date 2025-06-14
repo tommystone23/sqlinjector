@@ -16,7 +16,7 @@ pip install -r requirements.txt
 ```
 Build packaged binary:
 ```bash
-pyinstaller --add-data="sqlinjector/templates:templates" --onefile --name sqlinjector.plugin main.py
+pyinstaller --add-data="sqlinjector/templates:templates" --add-data="sqlinjector/sqlmap.zip:." --onefile --name sqlinjector.plugin main.py
 ```
 
 The resulting binary `./dist/sqlinjector.plugin` can be copied over to the PTT plugins directory for use.
