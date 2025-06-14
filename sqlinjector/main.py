@@ -61,11 +61,9 @@ def serve():
     print(f"1|1|tcp|{address}|grpc")
     sys.stdout.flush()
 
-    try:
-        while True:
-            time.sleep(60)
-    except KeyboardInterrupt:
-        server.stop(0)
+    print("SQLInjector plugin starting")
+    server.wait_for_termination()
+    print("SQLInjector plugin finished")
 
 if __name__ == '__main__':
     try:

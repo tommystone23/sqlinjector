@@ -10,6 +10,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from proto import module_pb2
 import os
 import sys
+from sqlinjector.api_handler import APIHandler
 class RequestHandler:
     def __init__(self):
         self.handlers = {
@@ -18,7 +19,6 @@ class RequestHandler:
             "/request-scan" : Handler("POST", "/start-scan", True, start_scan)
         }
         
-        # This checks for PyInstaller executable and accesses bundled fs/dir
         if getattr(sys, 'frozen', False):
             base_path = sys._MEIPASS
         else:
@@ -30,6 +30,14 @@ class RequestHandler:
             autoescape=select_autoescape()
         )
         self.template = env.get_template("index.html")
+
+        self.api_handler = APIHandler()
+        self.api_handler.start_api_server()
+        api_version = self.api_handler.version()
+        if(api_version.startswith("Failed")):
+            print(api_version)
+            raise Exception('SQLMap API failed to start')
+        print(f'SQLMap API version: {api_version}')
 
     def set_root_path(self, root_path : str):
         self.root_path = root_path
