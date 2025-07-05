@@ -35,16 +35,21 @@ class RequestHandler:
         self.api_handler.start_api_server()
         api_version = self.api_handler.version()
         if(api_version.startswith("Failed")):
-            print(api_version)
+            logger.error(api_version)
             raise Exception('SQLMap API failed to start')
-        print(f'SQLMap API version: {api_version}')
 
     def set_root_path(self, root_path : str):
         self.root_path = root_path
 
     def handle_request(self, request, context):
         tail_url = request.url.replace(self.root_path, '')
+        tail_url = tail_url.split('?')[0]
         return self.handlers[tail_url].func(request, context)
+
+    def handle_sse_request(self, request, context):
+        tail_url = request.url.replace(self.root_path, '')
+        tail_url = tail_url.split('?')[0]
+        yield from self.handlers[tail_url].func(request, context)
 
     def index(self, request, context):
         return module_pb2.Response(

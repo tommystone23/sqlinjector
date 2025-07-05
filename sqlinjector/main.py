@@ -13,6 +13,8 @@ from proto import module_pb2_grpc
 from sqlinjector.request_handler import RequestHandler
 from sqlinjector.request_handler import Handler
 
+from sqlinjector.logger_config import logger
+
 class SQLInjectionServicer(module_pb2_grpc.ModuleServicer):
     def __init__(self):
         self.req_handler = RequestHandler()
@@ -41,7 +43,7 @@ class SQLInjectionServicer(module_pb2_grpc.ModuleServicer):
         return self.req_handler.handle_request(request, context)
     
     def HandleSSE(self, request, context):
-        return self.req_handler.handle_request(request, context)
+        yield from self.req_handler.handle_sse_request(request, context)
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -61,12 +63,12 @@ def serve():
     print(f"1|1|tcp|{address}|grpc")
     sys.stdout.flush()
 
-    print("SQLInjector plugin starting")
+    logger.info("SQLInjector plugin starting")
     server.wait_for_termination()
-    print("SQLInjector plugin finished")
+    logger.info("SQLInjector plugin finished")
 
 if __name__ == '__main__':
     try:
         serve()
     except Exception as e:
-        print("Call to 'serve()' was unsuccessful", e)
+        logger.error(f"Call to 'serve()' was unsuccessful: {e}")
