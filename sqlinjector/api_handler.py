@@ -3,6 +3,7 @@ import os
 import urllib.request
 import zipfile
 from subprocess import Popen
+from subprocess import DEVNULL
 import json
 import time
 
@@ -50,7 +51,7 @@ class APIHandler():
         if port == None: port = self.port
         args = ['python3', self.api_path, '-s', '-H', self.host, '-p', port]
         try:
-            process_handle = Popen(args, shell=False)
+            process_handle = Popen(args, shell=False, stdout=DEVNULL)
         except Exception as e:
             print(f"An error occurred while starting API server: {e}")
             exit(1)
@@ -109,3 +110,8 @@ class APIHandler():
         if data and data['success']:
             return data['data']
         return "No task data"
+
+    def task_log(self, taskid : int):
+        data = self.request(f'/scan/{taskid}/log')
+        if data and data['success']:
+            return data['log']
