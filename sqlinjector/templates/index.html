@@ -1,98 +1,277 @@
-<!DOCTYPE html>
-<html lang="en" x-data="sqlInjectorApp()" x-init="init()">
-<head>
-  <meta charset="UTF-8" />
-  <title>SQLInjector</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body class="bg-gray-100 text-gray-800 p-6">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg">
-    <div class="border-b border-gray-200">
-      <h1 class="text-2xl font-bold p-4">SQLInjector</h1>
-      <div class="flex border-b">
-        <button
-          class="tab-btn px-4 py-2 font-medium text-sm"
-          :class="activeTab === 'injection' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600 hover:text-blue-600'"
-          @click="activeTab = 'injection'"
-        >Injection</button>
-        <button
-          class="tab-btn px-4 py-2 font-medium text-sm"
-          :class="activeTab === 'results' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600 hover:text-blue-600'"
-          @click="activeTab = 'results'"
-        >Results</button>
+<div x-data="sqlinjector()" class="max-w-4xl mx-auto bg-white shadow rounded-lg">
+  <!-- Header -->
+  <div class="border-b border-gray-200 flex">
+    <button
+      class="px-4 py-2 font-medium text-sm"
+      :class="activeTab === 'scan-params' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-600 hover:text-green-600'"
+      @click="activeTab = 'scan-params'"
+    >Scan Options</button>
+    <button
+      class="px-4 py-2 font-medium text-sm"
+      :class="activeTab === 'results' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-600 hover:text-green-600'"
+      @click="activeTab = 'results'"
+    >Scan Results</button>
+  </div>
+
+  <!-- Scan Options Tab -->
+  <div x-show="activeTab === 'scan-params'" class="p-4 space-y-6">
+    <!-- URL -->
+    <div>
+      <label class="block text-sm font-medium">URL</label>
+      <input type="text" x-model="form.url" class="w-full border rounded p-2" />
+    </div>
+
+    <!-- HTTP Method -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium">HTTP Method</label>
+        <select x-model="form.http_method" class="w-full border rounded p-2">
+          <option>Default</option>
+          <option>GET</option>
+          <option>POST</option>
+          <option>PUT</option>
+          <option>DELETE</option>
+          <option>PATCH</option>
+        </select>
       </div>
     </div>
 
-    <!-- Injection Tab -->
-    <div x-show="activeTab === 'injection'" class="tab-content p-4">
-      <form class="space-y-4" @submit.prevent="startScan">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Target URL</label>
-          <input type="text" x-model="target" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
-        </div>
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Inject</button>
-      </form>
+    <!-- Data -->
+    <div>
+      <label class="block text-sm font-medium">Post Data</label>
+      <textarea x-model="form.data" rows="3" class="w-full border rounded p-2"></textarea>
     </div>
 
-    <!-- Results Tab -->
-    <div x-show="activeTab === 'results'" class="tab-content p-4">
-      <div class="flex items-center space-x-2 mb-2">
-        <h2 class="text-xl font-semibold">Injection Results</h2>
-        <div x-show="isLoading" class="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    <!-- Cookies, Referer, User-Agent -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-medium">Cookies</label>
+        <input type="text" x-model="form.cookies" class="w-full border rounded p-2" />
       </div>
-      <pre class="bg-gray-100 p-3 rounded border text-sm whitespace-pre-wrap" x-text="output || 'No results yet.'"></pre>
+      <div>
+        <label class="block text-sm font-medium">Referer</label>
+        <input type="text" x-model="form.referer" class="w-full border rounded p-2" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">User-Agent</label>
+        <input type="text" x-model="form.user_agent" class="w-full border rounded p-2" />
+      </div>
+    </div>
+
+    <!-- Custom Headers -->
+    <div>
+      <label class="block text-sm font-medium">Custom Headers</label>
+      <input type="text" x-model="form.custom_headers" class="w-full border rounded p-2" />
+    </div>
+
+    <!-- Test Parameters & Text Only -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium">Test Parameter(s)</label>
+        <input type="text" x-model="form.test_parameters" class="w-full border rounded p-2" />
+      </div>
+      <div class="flex items-center mt-6">
+        <input type="checkbox" x-model="form.text_only" class="mr-2" />
+        <span>Text Only</span>
+      </div>
+    </div>
+
+    <!-- Level, Risk, Technique -->
+    <div class="grid grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-medium">Level</label>
+        <select x-model="form.level" class="w-full border rounded p-2">
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+          <option>4</option>
+          <option>5</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Risk</label>
+        <select x-model="form.risk" class="w-full border rounded p-2">
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Enumeration Options -->
+    <div>
+      <label class="block text-sm font-medium mb-2">Enumeration Options</label>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <template x-for="opt in enumOptions" :key="opt.key">
+            <div>
+              <label class="inline-flex items-center">
+                <input type="checkbox" x-model="form[opt.key]" class="mr-2" />
+                <span x-text="opt.label"></span>
+              </label>
+            </div>
+          </template>
+      </div>
+    </div>
+
+    <!-- DBMS Backend and Operating System -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium">DBMS Backend</label>
+        <select x-model="form.dbms_backend" class="w-full border rounded p-2">
+          <option>Any</option>
+          <option>MySQL</option>
+          <option>Oracle</option>
+          <option>PostgreSQL</option>
+          <option>Microsoft SQL Server</option>
+          <option>Microsoft Access</option>
+          <option>SQLite</option>
+          <option>Firebird</option>
+          <option>Sybase</option>
+          <option>SAP MaxDB</option>
+          <option>DB2</option>
+          <option>Informix</option>
+          <option>MariaDB</option>
+          <option>Percona</option>
+          <option>MemSQL</option>
+          <option>TiDB</option>
+          <option>CockroachDB</option>
+          <option>HSQLDB</option>
+          <option>H2</option>
+          <option>MonetDB</option>
+          <option>Apache Derby</option>
+          <option>Amazon Redshift</option>
+          <option>Vertica</option>
+          <option>Mckoi</option>
+          <option>Presto</option>
+          <option>Altibase</option>
+          <option>MimerSQL</option>
+          <option>CrateDB</option>
+          <option>Greenplum</option>
+          <option>Drizzle</option>
+          <option>Apache Ignite</option>
+          <option>Cubrid</option>
+          <option>InterSystems Cache</option>
+          <option>IRIS</option>
+          <option>eXtremeDB</option>
+          <option>FrontBase</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Operating System</label>
+        <select x-model="form.operating_system" class="w-full border rounded p-2">
+          <option>Any</option>
+          <option>Linux</option>
+          <option>Windows</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Start Scan Button -->
+    <div>
+      <button
+        @click="startScan()"
+        :disabled="loading"
+        class="bg-green-400 text-white px-6 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+        x-text="loading ? 'Scanning...' : 'Start Scan'">
+      </button>
+      </button>
     </div>
   </div>
 
-  <script>
-    function sqlInjectorApp() {
-      return {
-        activeTab: 'injection',
-        target: '',
-        output: '',
-        isLoading: false,
-        sseSource: null,
+  <!-- Scan Results Tab -->
+  <div x-show="activeTab === 'results'" class="tab-content p-4">
+    <div class="flex items-center space-x-2 mb-2">
+      <h2 class="text-xl font-semibold">Injection Results</h2>
+      <div x-show="loading" class="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+    <pre class="bg-gray-100 p-3 rounded border text-sm whitespace-pre-wrap" x-text="output || 'No results yet.'"></pre>
+  </div>
+</div>
 
-        init() {
-          this.output = '';
-        },
 
-        startScan() {
-          this.output = '';
-          this.isLoading = true;
-          this.activeTab = 'results';
+<script>
+function sqlinjector() {
+  return {
+    loading: false,
+    status: '',
+    sseSource: null,
+    activeTab: "scan-params",
 
-          if (this.sseSource) {
-            this.sseSource.close();
-          }
+    form: {
+      http_method: 'Default',
+      url: '',
+      data: '',
+      cookies: '',
+      referer: '',
+      user_agent: '',
+      custom_headers: '',
+      test_parameters: '',
+      text_only: false,
+      level: '1',
+      risk: '1',
+      hpp: false,
+      cu: false,
+      db: false,
+      host: false,
+      dba: false,
+      users: false,
+      pswds: false,
+      privs: false,
+      roles: false,
+      dbs: false,
+      dbms_backend: 'Any',
+      operating_system: 'Any'
+    },
 
-          const query = new URLSearchParams({
-            target: this.target
-          }).toString();
+    enumOptions: [
+      { key: 'hpp', label: 'Param Pollution' },
+      { key: 'cu', label: 'Current User' },
+      { key: 'db', label: 'Current DB' },
+      { key: 'host', label: 'Hostname' },
+      { key: 'dba', label: 'Is DBA?' },
+      { key: 'users', label: 'List Users' },
+      { key: 'pswds', label: 'List Passwords' },
+      { key: 'privs', label: 'List Privileges' },
+      { key: 'roles', label: 'List Roles' },
+      { key: 'dbs', label: 'List DBs' }
+    ],
 
-          const basePath = "/plugin/github.com/Penetration-Testing-Toolkit/sqlinjector";
+    init() {
+      this.output = '';
+    },
 
-          this.sseSource = new EventSource(`${basePath}/start-scan?${query}`);
+    startScan() {
+      this.output = '';
+      this.loading = true;
+      this.activeTab = 'results';
 
-          this.sseSource.onmessage = (event) => {
-            if(event.data == "STREAM ENDED") {
-              this.isLoading = false
-              this.sseSource.close()
-              return
-            }
-            this.output += event.data;
-          };
-
-          this.sseSource.onerror = () => {
-            this.sseSource.close();
-            this.isLoading = false;
-          };
-        }
+      if (this.sseSource) {
+        this.sseSource.close();
       }
-    }
-  </script>
 
-</body>
-</html>
+      const query = new URLSearchParams(this.form).toString();
+
+      const basePath = "/plugin/github.com/Penetration-Testing-Toolkit/sqlinjector";
+
+      this.sseSource = new EventSource(`${basePath}/start-scan?${query}`);
+
+      this.sseSource.onmessage = (event) => {
+        if(event.data == "STREAM ENDED") {
+          this.loading = false
+          this.sseSource.close()
+          return
+        }
+        this.output += event.data;
+      };
+
+      this.sseSource.onerror = () => {
+        this.sseSource.close();
+        this.loading = false;
+      };
+    }
+  }
+}
+</script>
