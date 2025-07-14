@@ -25,7 +25,8 @@ class SQLInjectionServicer(module_pb2_grpc.ModuleServicer):
         response = module_pb2.RegisterResponse(
             id="github.com/Penetration-Testing-Toolkit/sqlinjector",
             name="SQLInjector",
-            version="0.1.0",
+            version="0.2.0",
+            category=module_pb2.Category.SCANNER
         )
 
         root_path = '/plugin/' + response.id
