@@ -65,7 +65,7 @@ class RequestHandler:
         logger.info("starting start_scan()")
         logger.info(f"Using url: {request.url}")
         try:
-            url = parse_args(request.url).get('target')
+            url = parse_args(request.url).get('url')
         except Exception as e:
             logger.info(f"failed to get url: {e}")
             return
