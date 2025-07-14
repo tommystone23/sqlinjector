@@ -6,6 +6,7 @@ from subprocess import Popen
 from subprocess import DEVNULL
 import json
 import time
+from sqlinjector.logger_config import logger
 
 class APIHandler():
     def __init__(self):
@@ -25,8 +26,8 @@ class APIHandler():
         else:
             cur_dir = os.path.dirname(__file__)
         if not os.path.isfile(os.path.join(cur_dir, "sqlmap.zip")):
-            print('No SQLMap zip file', os.path.join(cur_dir, "sqlmap.zip"))
-            print(f'Falling back to default path {self.api_path}')
+            logger.warning('No SQLMap zip file', os.path.join(cur_dir, "sqlmap.zip"))
+            logger.info(f'Falling back to default path {self.api_path}')
             return
         try: # Extract sqlmap
             with zipfile.ZipFile(os.path.join(cur_dir, "sqlmap.zip")) as sqlmapzip:
@@ -41,10 +42,10 @@ class APIHandler():
             if os.path.isfile(api_file):
                 self.api_path = api_file
             else:
-                print('Could not find SQLMap API file.')
+                logger.error('Could not find SQLMap API file.')
                 raise Exception("Error occurred during sqlmap extraction")
         except:
-            print('Failed to extract sqlmap.zip')
+            logger.error('Failed to extract sqlmap.zip')
             exit(1)
     
     def start_api_server(self, port : str=None):
@@ -53,7 +54,7 @@ class APIHandler():
         try:
             process_handle = Popen(args, shell=False, stdout=DEVNULL)
         except Exception as e:
-            print(f"An error occurred while starting API server: {e}")
+            logger.error(f"An error occurred while starting API server: {e}")
             exit(1)
 
         self.process = process_handle
