@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cmodule.proto\x12\x05proto\"\x07\n\x05\x45mpty\"/\n\x0fRegisterRequest\x12\x1c\n\x14store_server_address\x18\x01 \x01(\t\"\xa4\x01\n\x10RegisterResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0f\n\x07version\x18\x03 \x01(\t\x12-\n\x06routes\x18\x04 \x03(\x0b\x32\x1d.proto.RegisterResponse.Route\x1a\x36\n\x05Route\x12\x0e\n\x06method\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x0f\n\x07use_sse\x18\x03 \x01(\x08\"\x90\x01\n\x06Header\x12)\n\x06header\x18\x01 \x03(\x0b\x32\x19.proto.Header.HeaderEntry\x1a\x17\n\x05Value\x12\x0e\n\x06values\x18\x01 \x03(\t\x1a\x42\n\x0bHeaderEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\"\n\x05value\x18\x02 \x01(\x0b\x32\x13.proto.Header.Value:\x02\x38\x01\"S\n\x07Request\x12\x0e\n\x06method\x18\x01 \x01(\t\x12\x0b\n\x03url\x18\x02 \x01(\t\x12\x1d\n\x06header\x18\x03 \x01(\x0b\x32\r.proto.Header\x12\x0c\n\x04\x62ody\x18\x04 \x01(\x0c\"G\n\x08Response\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12\x1d\n\x06header\x18\x02 \x01(\x0b\x32\r.proto.Header\x12\x0c\n\x04\x62ody\x18\x03 \x01(\t2\xa0\x01\n\x06Module\x12;\n\x08Register\x12\x16.proto.RegisterRequest\x1a\x17.proto.RegisterResponse\x12)\n\x06Handle\x12\x0e.proto.Request\x1a\x0f.proto.Response\x12.\n\tHandleSSE\x12\x0e.proto.Request\x1a\x0f.proto.Response0\x01\x42\tZ\x07./protob\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0cmodule.proto\x12\x05proto\"\x07\n\x05\x45mpty\"/\n\x0fRegisterRequest\x12\x1c\n\x14store_server_address\x18\x01 \x01(\t\"\xa3\x02\n\x10RegisterResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0f\n\x07version\x18\x03 \x01(\t\x12-\n\x06routes\x18\x04 \x03(\x0b\x32\x1d.proto.RegisterResponse.Route\x12!\n\x08\x63\x61tegory\x18\x05 \x01(\x0e\x32\x0f.proto.Category\x12\x32\n\x08metadata\x18\x06 \x03(\x0b\x32 .proto.RegisterResponse.Metadata\x1a\x36\n\x05Route\x12\x0e\n\x06method\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x0f\n\x07use_sse\x18\x03 \x01(\x08\x1a&\n\x08Metadata\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\x90\x01\n\x06Header\x12)\n\x06header\x18\x01 \x03(\x0b\x32\x19.proto.Header.HeaderEntry\x1a\x17\n\x05Value\x12\x0e\n\x06values\x18\x01 \x03(\t\x1a\x42\n\x0bHeaderEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\"\n\x05value\x18\x02 \x01(\x0b\x32\x13.proto.Header.Value:\x02\x38\x01\"S\n\x07Request\x12\x0e\n\x06method\x18\x01 \x01(\t\x12\x0b\n\x03url\x18\x02 \x01(\t\x12\x1d\n\x06header\x18\x03 \x01(\x0b\x32\r.proto.Header\x12\x0c\n\x04\x62ody\x18\x04 \x01(\x0c\"G\n\x08Response\x12\x0e\n\x06status\x18\x01 \x01(\x05\x12\x1d\n\x06header\x18\x02 \x01(\x0b\x32\r.proto.Header\x12\x0c\n\x04\x62ody\x18\x03 \x01(\t*\x85\x01\n\x08\x43\x61tegory\x12\x08\n\x04MISC\x10\x00\x12\x0b\n\x07SCANNER\x10\x01\x12\x0c\n\x08PASSWORD\x10\x02\x12\t\n\x05SHELL\x10\x03\x12\x0b\n\x07\x45XPLOIT\x10\x04\x12\x07\n\x03WEB\x10\x05\x12\x16\n\x12SOCIAL_ENGINEERING\x10\x06\x12\x0c\n\x08\x46ORENSIC\x10\x07\x12\r\n\tREPORTING\x10\x08\x32\xa0\x01\n\x06Module\x12;\n\x08Register\x12\x16.proto.RegisterRequest\x1a\x17.proto.RegisterResponse\x12)\n\x06Handle\x12\x0e.proto.Request\x1a\x0f.proto.Response\x12.\n\tHandleSSE\x12\x0e.proto.Request\x1a\x0f.proto.Response0\x01\x42\tZ\x07./protob\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,24 +34,28 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._serialized_options = b'Z\007./proto'
   _globals['_HEADER_HEADERENTRY']._loaded_options = None
   _globals['_HEADER_HEADERENTRY']._serialized_options = b'8\001'
+  _globals['_CATEGORY']._serialized_start=681
+  _globals['_CATEGORY']._serialized_end=814
   _globals['_EMPTY']._serialized_start=23
   _globals['_EMPTY']._serialized_end=30
   _globals['_REGISTERREQUEST']._serialized_start=32
   _globals['_REGISTERREQUEST']._serialized_end=79
   _globals['_REGISTERRESPONSE']._serialized_start=82
-  _globals['_REGISTERRESPONSE']._serialized_end=246
-  _globals['_REGISTERRESPONSE_ROUTE']._serialized_start=192
-  _globals['_REGISTERRESPONSE_ROUTE']._serialized_end=246
-  _globals['_HEADER']._serialized_start=249
-  _globals['_HEADER']._serialized_end=393
-  _globals['_HEADER_VALUE']._serialized_start=302
-  _globals['_HEADER_VALUE']._serialized_end=325
-  _globals['_HEADER_HEADERENTRY']._serialized_start=327
-  _globals['_HEADER_HEADERENTRY']._serialized_end=393
-  _globals['_REQUEST']._serialized_start=395
-  _globals['_REQUEST']._serialized_end=478
-  _globals['_RESPONSE']._serialized_start=480
-  _globals['_RESPONSE']._serialized_end=551
-  _globals['_MODULE']._serialized_start=554
-  _globals['_MODULE']._serialized_end=714
+  _globals['_REGISTERRESPONSE']._serialized_end=373
+  _globals['_REGISTERRESPONSE_ROUTE']._serialized_start=279
+  _globals['_REGISTERRESPONSE_ROUTE']._serialized_end=333
+  _globals['_REGISTERRESPONSE_METADATA']._serialized_start=335
+  _globals['_REGISTERRESPONSE_METADATA']._serialized_end=373
+  _globals['_HEADER']._serialized_start=376
+  _globals['_HEADER']._serialized_end=520
+  _globals['_HEADER_VALUE']._serialized_start=429
+  _globals['_HEADER_VALUE']._serialized_end=452
+  _globals['_HEADER_HEADERENTRY']._serialized_start=454
+  _globals['_HEADER_HEADERENTRY']._serialized_end=520
+  _globals['_REQUEST']._serialized_start=522
+  _globals['_REQUEST']._serialized_end=605
+  _globals['_RESPONSE']._serialized_start=607
+  _globals['_RESPONSE']._serialized_end=678
+  _globals['_MODULE']._serialized_start=817
+  _globals['_MODULE']._serialized_end=977
 # @@protoc_insertion_point(module_scope)
