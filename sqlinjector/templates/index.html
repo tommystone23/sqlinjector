@@ -1,5 +1,4 @@
 <script src="https://cdn.tailwindcss.com"></script>
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 <div x-data="sqlinjector()" class="max-w-4xl mx-auto bg-white shadow rounded-lg">
   <!-- Header -->
@@ -28,7 +27,7 @@
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium">HTTP Method</label>
-        <select x-model="form.http_method" class="w-full border rounded p-2">
+        <select x-model="form.method" class="w-full border rounded p-2">
           <option>Default</option>
           <option>GET</option>
           <option>POST</option>
@@ -49,7 +48,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
         <label class="block text-sm font-medium">Cookies</label>
-        <input type="text" x-model="form.cookies" class="w-full border rounded p-2" />
+        <input type="text" x-model="form.cookie" class="w-full border rounded p-2" />
       </div>
       <div>
         <label class="block text-sm font-medium">Referer</label>
@@ -57,25 +56,36 @@
       </div>
       <div>
         <label class="block text-sm font-medium">User-Agent</label>
-        <input type="text" x-model="form.user_agent" class="w-full border rounded p-2" />
+        <input type="text" x-model="form.agent" class="w-full border rounded p-2" />
       </div>
     </div>
 
     <!-- Custom Headers -->
     <div>
       <label class="block text-sm font-medium">Custom Headers</label>
-      <input type="text" x-model="form.custom_headers" class="w-full border rounded p-2" />
+      <input type="text" x-model="form.headers" class="w-full border rounded p-2" />
     </div>
 
     <!-- Test Parameters & Text Only -->
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium">Test Parameter(s)</label>
-        <input type="text" x-model="form.test_parameters" class="w-full border rounded p-2" />
+        <input type="text" x-model="form.testParameter" class="w-full border rounded p-2" />
       </div>
       <div class="flex items-center mt-6">
-        <input type="checkbox" x-model="form.text_only" class="mr-2" />
+        <input type="checkbox" x-model="form.textOnly" class="mr-2" />
         <span>Text Only</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium">Database</label>
+        <input type="text" x-model="form.db" class="w-full border rounded p-2" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Table</label>
+        <input type="text" x-model="form.tbl" class="w-full border rounded p-2" />
       </div>
     </div>
 
@@ -120,7 +130,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium">DBMS Backend</label>
-        <select x-model="form.dbms_backend" class="w-full border rounded p-2">
+        <select x-model="form.dbms" class="w-full border rounded p-2">
           <option>Any</option>
           <option>MySQL</option>
           <option>Oracle</option>
@@ -161,7 +171,7 @@
       </div>
       <div>
         <label class="block text-sm font-medium">Operating System</label>
-        <select x-model="form.operating_system" class="w-full border rounded p-2">
+        <select x-model="form.os" class="w-full border rounded p-2">
           <option>Any</option>
           <option>Linux</option>
           <option>Windows</option>
@@ -184,10 +194,10 @@
   <!-- Scan Results Tab -->
   <div x-show="activeTab === 'results'" class="tab-content p-4">
     <div class="flex items-center space-x-2 mb-2">
-      <h2 class="text-xl font-semibold">Injection Results</h2>
+      <h2 x-show="loading" class="text-xl font-semibold">Scanning for SQLi</h2>
       <div x-show="loading" class="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
     </div>
-    <pre class="bg-gray-100 p-3 rounded border text-sm whitespace-pre-wrap" x-text="output || 'No results yet.'"></pre>
+    <div id="scan-output" class="text-sm"></div>
   </div>
 </div>
 
@@ -201,50 +211,51 @@ function sqlinjector() {
     activeTab: "scan-params",
 
     form: {
-      http_method: 'Default',
+      method: 'Default', 
       url: '',
       data: '',
-      cookies: '',
+      cookie: '',
       referer: '',
-      user_agent: '',
-      custom_headers: '',
-      test_parameters: '',
-      text_only: false,
+      agent: '',
+      headers: '',
+      testParameter: '',
+      textOnly: false,
       level: '1',
       risk: '1',
       hpp: false,
-      cu: false,
-      db: false,
-      host: false,
-      dba: false,
-      users: false,
-      pswds: false,
-      privs: false,
-      roles: false,
-      dbs: false,
-      dbms_backend: 'Any',
-      operating_system: 'Any'
+      getCurrentUser: false,
+      getCurrentDb: false,
+      getHostname: false,
+      isDba: false,
+      getUsers: false,
+      getPasswordHashes: false,
+      getPrivileges: false,
+      getRoles: false,
+      getDbs: false,
+      dbms: 'Any',
+      os: 'Any',
+      db: '',
+      tbl: '',
+      getBanner: true,
+      dumpTable: true
     },
 
     enumOptions: [
-      { key: 'hpp', label: 'Param Pollution' },
-      { key: 'cu', label: 'Current User' },
-      { key: 'db', label: 'Current DB' },
-      { key: 'host', label: 'Hostname' },
-      { key: 'dba', label: 'Is DBA?' },
-      { key: 'users', label: 'List Users' },
-      { key: 'pswds', label: 'List Passwords' },
-      { key: 'privs', label: 'List Privileges' },
-      { key: 'roles', label: 'List Roles' },
-      { key: 'dbs', label: 'List DBs' }
+      { key: 'hpp',               label: 'Param Pollution' },
+      { key: 'getCurrentUser',    label: 'Current User' },
+      { key: 'getCurrentDb',      label: 'Current DB' },
+      { key: 'getHostname',       label: 'Hostname' },
+      { key: 'isDba',             label: 'Is DBA?' },
+      { key: 'getUsers',          label: 'List Users' },
+      { key: 'getPasswordHashes', label: 'List Passwords' },
+      { key: 'getPrivileges',     label: 'List Privileges' },
+      { key: 'getRoles',          label: 'List Roles' },
+      { key: 'getDbs',            label: 'List DBs' },
+      { key: 'getTables',         label: 'List Tables' }
     ],
 
-    init() {
-      this.output = '';
-    },
-
     startScan() {
-      this.output = '';
+      document.getElementById("scan-output").innerHTML = '';
       this.loading = true;
       this.activeTab = 'results';
 
@@ -264,7 +275,7 @@ function sqlinjector() {
           this.sseSource.close()
           return
         }
-        this.output += event.data;
+        document.getElementById("scan-output").innerHTML = event.data;
       };
 
       this.sseSource.onerror = () => {
