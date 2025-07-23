@@ -1,0 +1,136 @@
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="space-y-2 text-sm">
+
+<h1 class="text-xl font-semibold text-green-600 mb-1">SQLMap Scan Findings</h1>
+{% if vulnerable %}
+<p>The application has been found to be vulnerable to <span class="font-medium">SQL injection</span>.</p>
+
+{% if vulnurl and vulnparam %}
+<div>
+    <p class="font-medium">Vulnerable URL and Parameter:</p>
+    <ul class="list-disc list-inside ml-4">
+    <li><strong>URL:</strong> {{ vulnurl }}</li>
+    <li><strong>Parameter:</strong> {{ vulnparam }}</li>
+    </ul>
+</div>
+{% endif %}
+
+<div>
+    <p class="font-medium">Enumerated Data:</p>
+    <ul class="list-disc list-inside ml-4">
+    {% if dbtype or banner %}<li>{{ dbtype }}: {{ banner }}</li>{% endif %}
+    {% if cu %}<li>Current User: {{ cu }}</li>{% endif %}
+    {% if cdb %}<li>Current DB: {{ cdb }}</li>{% endif %}
+    {% if hostname %}<li>Hostname: {{ hostname }}</li>{% endif %}
+    {% if isdba %}<li>DBA: {{ isdba }}</li>{% endif %}
+    </ul>
+</div>
+
+{% if lusers %}
+<div>
+    <p class="font-medium">Users:</p>
+    <ul class="list-disc list-inside ml-4">
+    {% for user in lusers %}
+    <li>{{ user }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if lpswds %}
+<div>
+    <p class="font-medium">Password Hashes per User:</p>
+    <ul class="ml-4 space-y-1">
+    {% for user, password in lpswds.items() %}
+    <li>
+        <span class="font-semibold">{{ user }}</span>
+        <ul class="list-disc list-inside ml-4">
+        <li>{{ password }}</li>
+        </ul>
+    </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if lprivs %}
+<div>
+    <p class="font-medium">Privileges per User:</p>
+    <ul class="ml-4 space-y-1">
+    {% for user, privs in lprivs.items() %}
+    <li>
+        <span class="font-semibold">{{ user }}</span>
+        <ul class="list-disc list-inside ml-4">
+        {% if privs %}
+            {% for priv in privs %}
+            <li>{{ priv }}</li>
+            {% endfor %}
+        {% else %}
+            <li>Null</li>
+        {% endif %}
+        </ul>
+    </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if lroles %}
+<div>
+    <p class="font-medium">Roles per User:</p>
+    <ul class="ml-4 space-y-1">
+    {% for user, roles in lroles.items() %}
+    <li>
+        <span class="font-semibold">{{ user }}</span>
+        <ul class="list-disc list-inside ml-4">
+        {% if roles %}
+            {% for role in roles %}
+            <li>{{ role }}</li>
+            {% endfor %}
+        {% else %}
+            <li>Null</li>
+        {% endif %}
+        </ul>
+    </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if ldbs %}
+<div>
+    <p class="font-medium">Databases:</p>
+    <ul class="list-disc list-inside ml-4">
+    {% for db in ldbs %}
+    <li>{{ db }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if ltables %}
+<div>
+    <p class="font-medium">Database Tables:</p>
+    <ul class="ml-4 space-y-2">
+    {% for db, tables in ltables.items() %}
+    <li>
+        <span class="font-semibold">{{ db }}</span>
+        <ul class="list-disc list-inside ml-4">
+        {% for table in tables %}
+        <li>{{ table }}</li>
+        {% endfor %}
+        </ul>
+    </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% else %}
+
+<p>The application has not been found to be vulnerable to <span class="font-medium">SQL Injection</span>.</p>
+
+{% endif %}
+
+</div>
