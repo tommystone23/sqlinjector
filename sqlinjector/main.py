@@ -6,10 +6,10 @@ from grpc_health.v1.health import HealthServicer
 from grpc_health.v1.health_pb2 import HealthCheckResponse
 from grpc_health.v1 import health_pb2_grpc
 
-from proto import module_pb2
-from proto import module_pb2_grpc
+from proto import module_pb2, module_pb2_grpc, store_pb2, store_pb2_grpc
 
 from sqlinjector.request_handler import RequestHandler
+from sqlinjector.databasecontroller import DatabaseController
 
 from sqlinjector.logger_config import logger
 
@@ -19,8 +19,7 @@ class SQLInjectionServicer(module_pb2_grpc.ModuleServicer):
         self.req_handler = RequestHandler()
 
     def Register(self, request, context):
-        # store this here for now until we define a use-case for it
-        self.db_fd = "unix://" + request.store_server_address
+        store_addr = "unix://" + request.store_server_address
         response = module_pb2.RegisterResponse(
             id="github.com/Penetration-Testing-Toolkit/sqlinjector",
             name="SQLInjector",
@@ -29,7 +28,13 @@ class SQLInjectionServicer(module_pb2_grpc.ModuleServicer):
         )
 
         root_path = "/plugin/" + response.id
+
+        channel = grpc.insecure_channel(store_addr)
+        store_client = store_pb2_grpc.StoreStub(channel)
+        db_controller = DatabaseController(store_client)
+
         self.req_handler.set_root_path(root_path)
+        self.req_handler.set_db_controller(db_controller)
 
         for key, value in self.req_handler.handlers.items():
             route = response.routes.add()

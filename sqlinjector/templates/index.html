@@ -19,8 +19,24 @@
   <div x-show="activeTab === 'scan-params'" class="p-4 space-y-6">
     <!-- URL -->
     <div>
-      <label class="block text-sm font-medium">URL</label>
-      <input type="text" x-model="form.url" class="w-full border rounded p-2" />
+      <label class="block text-sm font-medium mb-1">URL</label>
+      <div class="flex gap-2">
+        <input type="text" x-model="form.url" class="w-full border rounded p-2" />
+        <!-- Autofill Button -->
+        <template x-if="!autofillUnavailable">
+          <button
+            @click="autoFillIP"
+            x-bind:disabled="autofillComplete"
+            :class="autofillComplete ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
+            class="text-white px-4 py-2 rounded transition-colors"
+          >
+            Autofill
+          </button>
+        </template>
+      </div>
+      <template x-if="autofillUnavailable">
+        <span class="text-sm text-gray-500 italic">No data to autofill</span>
+      </template>
     </div>
 
     <!-- HTTP Method -->
@@ -254,34 +270,52 @@ function sqlinjector() {
       { key: 'getTables',         label: 'List Tables' }
     ],
 
+    basePath: "/plugin/github.com/Penetration-Testing-Toolkit/sqlinjector",
+
     startScan() {
       document.getElementById("scan-output").innerHTML = '';
       this.loading = true;
       this.activeTab = 'results';
 
-      if (this.sseSource) {
-        this.sseSource.close();
-      }
-
       const query = new URLSearchParams(this.form).toString();
 
-      const basePath = "/plugin/github.com/Penetration-Testing-Toolkit/sqlinjector";
+      fetch(`${this.basePath}/start-scan?${query}`)
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error("Scan failed");
+          }
 
-      this.sseSource = new EventSource(`${basePath}/start-scan?${query}`);
+          const data = await response.text(); // assuming the response is plain text
+          document.getElementById("scan-output").innerHTML = data;
+        })
+        .catch((err) => {
+          console.error("Error during scan:", err);
+          document.getElementById("scan-output").innerHTML = `<span class="text-red-600">Scan failed: ${err.message}</span>`;
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
 
-      this.sseSource.onmessage = (event) => {
-        if(event.data == "STREAM ENDED") {
-          this.loading = false
-          this.sseSource.close()
-          return
+    autofillComplete: false,
+    autofillUnavailable: false,
+
+    async autoFillIP() {
+      try {
+        const response = await fetch(`${this.basePath}/fetch-web-ip`);
+        if (!response.ok) throw new Error('Fetch failed');
+        const data = await response.json();
+
+        if (data.ip && data.ip.trim() !== '') {
+          this.form.url = data.ip;
+          this.autofillComplete = true;
+        } else {
+          this.autofillUnavailable = true;
         }
-        document.getElementById("scan-output").innerHTML = event.data;
-      };
-
-      this.sseSource.onerror = () => {
-        this.sseSource.close();
-        this.loading = false;
-      };
+      } catch (error) {
+        console.error('Autofill error:', error);
+        this.autofillUnavailable = true;
+      }
     }
   }
 }

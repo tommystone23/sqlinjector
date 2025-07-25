@@ -8,6 +8,8 @@ from sqlinjector.api_handler import APIHandler
 from sqlinjector.logger_config import logger
 from urllib.parse import urlparse, parse_qs
 from typing import Callable
+from sqlinjector.databasecontroller import DatabaseController
+import json
 
 
 @dataclass
@@ -41,7 +43,10 @@ class RequestHandler:
     def __init__(self):
         self.handlers = {
             "/index": Handler("GET", "/index", False, self.index),
-            "/start-scan": Handler("GET", "/start-scan", True, self.start_scan),
+            "/start-scan": Handler("GET", "/start-scan", False, self.start_scan),
+            "/fetch-web-ip": Handler(
+                "GET", "/fetch-web-ip", False, self.db_fetch_web_ip
+            ),
         }
 
         if getattr(sys, "frozen", False):
@@ -63,8 +68,14 @@ class RequestHandler:
             logger.error(api_version)
             raise Exception("SQLMap API failed to start")
 
+        self.root_path = ""
+        self.db_controller = None
+
     def set_root_path(self, root_path: str):
         self.root_path = root_path
+
+    def set_db_controller(self, db_controller: DatabaseController):
+        self.db_controller = db_controller
 
     def handle_request(self, request, context):
         tail_url = request.url.replace(self.root_path, "")
@@ -101,46 +112,34 @@ class RequestHandler:
             logger.error(f"failed to start task with task id: {task_id}")
             return
 
-        while context.is_active():
-            response_body = ""
-            while self.api_handler.task_status(task_id) != "terminated":
-                time.sleep(5)
+        # wait for scan to complete
+        while self.api_handler.task_status(task_id) != "terminated":
+            time.sleep(5)
 
-            scan_data = self.api_handler.task_data(task_id)
-            response_body = self.parse_scan_findings(scan_data)
+        # collect and parse scan results
+        scan_data = self.api_handler.task_data(task_id)
+        try:
+            response_body, scan_results = self.parse_scan_findings(scan_data)
+        except Exception as e:
+            logger.info(f"exception in parse scan results: {e}")
 
-            response = module_pb2.Response(
-                status=200,
-                header=module_pb2.Header(
-                    header={
-                        "Content-Type": module_pb2.Header.Value(
-                            values=["text/event-stream"]
-                        ),
-                        "Cache-Control": module_pb2.Header.Value(values=["no-cache"]),
-                        "Connection": module_pb2.Header.Value(values=["keep-alive"]),
-                    }
-                ),
-                body=response_body,
-            )
-            yield response
+        # send password hashes to database
+        if scan_results.lpswds:
+            proj_id = str(request.header.header["Ptt-Project-Id"].values[0])
+            self.db_push_hashes(proj_id, scan_results.lpswds)
 
-            yield module_pb2.Response(
-                status=200,
-                header=module_pb2.Header(
-                    header={
-                        "Content-Type": module_pb2.Header.Value(
-                            values=["text/event-stream"]
-                        ),
-                    }
-                ),
-                body="STREAM ENDED",
-            )
-            return
+        return module_pb2.Response(
+            status=200,
+            header=module_pb2.Header(
+                header={"Content-Type": module_pb2.Header.Value(values=["text/plain"])}
+            ),
+            body=response_body,
+        )
 
-    def parse_scan_findings(self, scan_data: dict):
+    def parse_scan_findings(self, scan_data: dict) -> tuple[str, ScanResults]:
         scan_results = ScanResults()
         vulnerable = False
-        html_ret = html_ret = self.scan_result_template.render(vulnerable=vulnerable)
+        html_ret = self.scan_result_template.render(vulnerable=vulnerable)
         for findings in scan_data:
             vulnerable = True
 
@@ -263,8 +262,9 @@ class RequestHandler:
                 if not isinstance(findings["value"], dict):
                     continue
 
-                usernames = findings["value"]["`user`"]["values"]
-                passwords = findings["value"]["password"]["values"]
+                value_dict = findings.get("value", {})
+                usernames = value_dict.get("`user`", {}).get("values", [])
+                passwords = value_dict.get("password", {}).get("values", [])
 
                 scan_results.lpswds = dict(zip(usernames, passwords))
 
@@ -286,7 +286,44 @@ class RequestHandler:
                 ltables=scan_results.ltables,
             )
 
-        return html_ret
+        return html_ret, scan_results
+
+    def db_fetch_web_ip(self, request, context):
+        # query db for IP with open port 80
+        proj_id = str(request.header.header["Ptt-Project-Id"].values[0])
+        open_ports = self.db_controller.fetch_value(
+            "github.com/chronotrax/nmap",
+            proj_id,
+            "open_ports",
+        )
+
+        ip = ""
+        for entry in open_ports:
+            logger.info(entry)
+            if entry["port"] == 80:
+                ip = entry["ip"]
+
+        json_resp = json.dumps({"ip": ip})
+        return module_pb2.Response(
+            status=200,
+            header=module_pb2.Header(
+                header={
+                    "Content-Type": module_pb2.Header.Value(values="application/json")
+                }
+            ),
+            body=json_resp,
+        )
+
+    def db_push_hashes(self, proj_id: str, pswd_hashes: dict):
+        try:
+            self.db_controller.push_value(
+                "github.com/Penetration-Testing-Toolkit/sqlinjector",
+                proj_id,
+                "sqli_pswd_hashes",
+                json.dumps(pswd_hashes),
+            )
+        except Exception as e:
+            logger.error(f"failed to push value to store: {e}")
 
 
 def parse_args(url: str) -> dict:
